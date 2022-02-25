@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>vCardGenerator</title>
+    <link href="bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <script src="bootstrap/bootstrap.bundle.min.js"></script>
+    <style>
+      #vCardOutputTextarea{ background-color: #e9ecef; width: 100%; margin: 0px auto 0px auto; }
+      /*.groupHeading card-header{  }*/
+      /*.card-header{ padding: 10px 10px 10px 10px; }*/
+    </style>
+    <script>
+      function saveTextareaToFile(textAreaID, fileName='vcard.vcf') {
+        let text = document.getElementById(textAreaID).value;
+        text = text.replace(/\n/g, "\r\n"); // To retain the Line breaks.
+        let blob = new Blob([text], { type: "text/plain"});
+        let anchor = document.createElement("a");
+        anchor.download = fileName;
+        anchor.href = window.URL.createObjectURL(blob);
+        anchor.target ="_blank";
+        anchor.style.display = "none"; // just to be safe!
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+      }
+      function generateVCard(textAreaVCardOutputID) {
+        let vCardOutput = 'BEGIN:VCARD\r\n';
+        vCardOutput += 'VERSION:3.0\r\n';
+
+        // NAME
+        // prefixName
+        let prefixName = document.getElementById('prefixName').value;
+
+        // firstName
+        let firstName = document.getElementById('firstName').value;
+
+        // middleName
+        let middleName = document.getElementById('middleName').value;
+
+        // lastName
+        let lastName = document.getElementById('lastName').value;
+
+        // suffixName
+        let suffixName = document.getElementById('suffixName').value;
+
+        // full name
+        vCardOutput += `FN;CHARSET=UTF-8:${firstName} ${middleName} ${lastName}\r\n`;
+
+        // name
+        vCardOutput += `N;CHARSET=UTF-8:${lastName};${firstName};${middleName};${prefixName};${suffixName}\r\n`;
+        
+        let nickName = document.getElementById('nickName').value;
+        vCardOutput += `NICKNAME;CHARSET=UTF-8:${nickName}\r\n`;
+        // END NAME
+
+        // WORK
+        let workOrganization = document.getElementById('workOrganization').value;
+        vCardOutput += `ORG;CHARSET=UTF-8:${workOrganization}\r\n`;
+        
+        let workTitle = document.getElementById('workTitle').value;
+        vCardOutput += `TITLE;CHARSET=UTF-8:${workTitle}\r\n`;
+
+        let workRole = document.getElementById('workRole').value;
+        vCardOutput += `ROLE;CHARSET=UTF-8:${workRole}\r\n`;
+
+        let workURL = document.getElementById('workURL').value;
+        vCardOutput += `URL;type=WORK;CHARSET=UTF-8:${workURL}\r\n`;
+        // END WORK
+
+        // EMAIL
+        // emailHome
+        let emailHome = document.getElementById('emailHome').value;
+        vCardOutput += `EMAIL;CHARSET=UTF-8;type=HOME,INTERNET:${emailHome}\r\n`;
+
+        // emailWork
+        let emailWork = document.getElementById('emailWork').value;
+        vCardOutput += `EMAIL;CHARSET=UTF-8;type=WORK,INTERNET:${emailWork}\r\n`;
+        // END EMAIL
+
+        // PHONES
+        // phoneHome
+        let phoneHome = document.getElementById('phoneHome').value;
+        vCardOutput += `TEL;TYPE=CELL:${phoneHome}\r\n`;
+
+        // phoneHome
+        let phoneWork = document.getElementById('phoneWork').value;
+        vCardOutput += `TEL;TYPE=HOME,VOICE:${phoneWork}\r\n`;
+
+        // phoneCell
+        let phoneCell = document.getElementById('phoneCell').value;
+        vCardOutput += `TEL;TYPE=CELL:${phoneCell}\r\n`;
+
+        // phonePager
+        let phonePager = document.getElementById('phonePager').value;
+        vCardOutput += `TEL;TYPE=PAGER:${phonePager}\r\n`;
+
+        // phoneHomeFax
+        let phoneHomeFax = document.getElementById('phoneHomeFax').value;
+        vCardOutput += `TEL;TYPE=HOME,FAX:${phoneHomeFax}\r\n`;
+
+        // phoneWorkFax
+        let phoneWorkFax = document.getElementById('phoneWorkFax').value;
+        vCardOutput += `TEL;TYPE=WORK,FAX:${phoneWorkFax}\r\n`;
+        // END PHONES
+        
+        // HOME ADRESS
+        let homeAddressLabel = document.getElementById('homeAddressLabel').value;
+
+        let homeAddressStreet = document.getElementById('homeAddressStreet').value;
+
+        let homeAddressCity = document.getElementById('homeAddressCity').value;
+
+        let homeAddressStateOrProvince = document.getElementById('homeAddressStateOrProvince').value;
+
+        let homeAddressPostalCode = document.getElementById('homeAddressPostalCode').value;
+
+        let homeAddressCountry = document.getElementById('homeAddressCountry').value;
+
+        vCardOutput += `LABEL;CHARSET=UTF-8;TYPE=HOME:${homeAddressLabel}\r\n`;
+        vCardOutput += `ADR;CHARSET=UTF-8;TYPE=HOME:;;${homeAddressStreet};${homeAddressCity};${homeAddressStateOrProvince};${homeAddressPostalCode};${homeAddressCountry}\r\n`;
+        // END HOME ADDRES
+        
+        // WORK ADDRESS
+        let workAddressLabel = document.getElementById('workAddressLabel').value;
+
+        let workAddressStreet = document.getElementById('workAddressStreet').value;
+
+        let workAddressCity = document.getElementById('workAddressCity').value;
+
+        let workAddressStateOrProvince = document.getElementById('workAddressStateOrProvince').value;
+
+        let workAddressPostalCode = document.getElementById('workAddressPostalCode').value;
+
+        let workAddressCountry = document.getElementById('workAddressCountry').value;
+
+        vCardOutput += `LABEL;CHARSET=UTF-8;TYPE=WORK:${workAddressLabel}\r\n`;
+        vCardOutput += `ADR;CHARSET=UTF-8;TYPE=WORK:;;${workAddressStreet};${workAddressCity};${workAddressStateOrProvince};${workAddressPostalCode};${workAddressCountry}\r\n`;
+        // END WORK ADDRESS
+        
+        // PERSONAL
+        // yyymmdd
+        let personalBirthday = document.getElementById('personalBirthday').value.replaceAll('-', '');
+        vCardOutput += `BDAY:${personalBirthday}\r\n`;
+
+        // yyymmdd
+        let personalAnniversary = document.getElementById('personalAnniversary').value.replaceAll('-', '');
+        vCardOutput += `ANNIVERSARY:${personalAnniversary}\r\n`;
+
+        let personalURL = document.getElementById('personalURL').value;
+        vCardOutput += `URL;CHARSET=UTF-8:${personalURL}\r\n`;
+
+        let personalGender = document.getElementById('personalGender').value;
+        vCardOutput += `GENDER:${personalGender}\r\n`;
+        // END PERSONAL
+
+        // IMAGES
+        let imagePhoto = document.getElementById('imagePhoto').value;
+        vCardOutput += `PHOTO;ENCODING=b;TYPE=JPEG:${imagePhoto}\r\n`;
+
+        let imageLogo = document.getElementById('imageLogo').value;
+        vCardOutput += `LOGO;ENCODING=b;TYPE=JPEG:${imageLogo}\r\n`;
+        // END IMAGES
+
+        // SOCIAL
+        // socialYoutube
+        let socialLinkedIn = document.getElementById('socialLinkedIn').value;
+        vCardOutput += `X-SOCIALPROFILE;TYPE=linkedin:${socialLinkedIn}\r\n`;
+
+        // socialTwitter
+        let socialTwitter = document.getElementById('socialTwitter').value;
+        vCardOutput += `X-SOCIALPROFILE;TYPE=twitter:${socialTwitter}\r\n`;
+
+        // socialFacebook
+        let socialFacebook = document.getElementById('socialFacebook').value;
+        vCardOutput += `X-SOCIALPROFILE;TYPE=facebook:${socialFacebook}\r\n`;
+
+        // socialInstagram
+        let socialInstagram = document.getElementById('socialInstagram').value;
+        vCardOutput += `X-SOCIALPROFILE;TYPE=instagram:${socialInstagram}\r\n`;
+
+        // socialYoutube
+        let socialYoutube = document.getElementById('socialYoutube').value;
+        vCardOutput += `X-SOCIALPROFILE;TYPE=youtube:${socialYoutube}\r\n`;
+
+        // socialTagged
+        let socialTagged = document.getElementById('socialTagged').value;
+        vCardOutput += `X-SOCIALPROFILE;TYPE=tagged:${socialTagged}\r\n`;
+        // END SOCIAL
+
+        // OTHER
+        // notesNote
+        let notesNote = document.getElementById('notesNote').value;
+        vCardOutput += `NOTE;CHARSET=UTF-8:${notesNote}\r\n`;
+
+        let notesUid = document.getElementById('notesUid').value;
+        vCardOutput += `UID;CHARSET=UTF-8:${notesUid}\r\n`;
+        // END
+
+        
+        vCardOutput += 'REV:2022-02-25T04:31:46.917Z\r\n';
+        vCardOutput += 'END:VCARD';
+        document.getElementById(textAreaVCardOutputID).value = vCardOutput;
+      }
+      function getFileName() {
+        let fileName = 'vcard.vcf';
+
+        // firstName
+        let firstName = document.getElementById('firstName').value;
+
+        // middleName
+        let middleName = document.getElementById('middleName').value;
+
+        // lastName
+        let lastName = document.getElementById('lastName').value;
+
+        // full name
+        //fileName = `${firstName}_${middleName}_${lastName}.vcf`;
+        if(middleName) {
+          fileName = `${firstName}`;
+        }
+
+        if(middleName) {
+          fileName += `_${middleName}`;
+        }
+        if(lastName) {
+          fileName += `_${lastName}`;
+        }
+        fileName += `.vcf`;
+        
+        fileName = fileName.toLowerCase();
+        fileName = fileName.replace(/\s/g, '');
+
+        return fileName;
+      }
+      function init() {
+      }
+    </script>
+  </head>
+  <body onload='init();'>
+    <div class='container'>
+      <div class='row'>
+        <div class='col text-center'>
+          <h1>vCardGenerator</h1>
+        </div>
+      </div>
+
+      <div class='input'>
+      </div>
+
+      <div class='row'>
+        <div class='col'>
+          <div class='card'>
+            <div class='group'>
+              <div class='groupHeading card-header'>Name</div>
+              <div class='card-body'>
+                Prefix<br/>
+                <input id='prefixName' name='prefixName' value='' /><br/>
+                First Name<br/>
+                <input id='firstName' name='firstName' value='' /><br/>
+                Middle Name<br/>
+                <input id='middleName' name='middleName' value='' /><br/>
+                Last Name<br/>
+                <input id='lastName' name='lastName' value='' /><br/>
+                Suffix<br/>
+                <input id='suffixName' name='suffixName' value='' /><br/>
+                Nickname<br/>
+                <input id='nickName' name='nickName' value='' /><br/>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class='col'>
+          <div class='card'>
+            <div class='group'>
+              <div class='groupHeading card-header'>Work</div>
+              <div class='card-body'>
+                Organization<br/>
+                <input id='workOrganization' name='workOrganization' value='' /><br/>
+                Title<br/>
+                <input id='workTitle' name='workTitle' value='' /><br/>
+                Role<br/>
+                <input id='workRole' name='workRole' value='' /><br/>
+                Work URL<br/>
+                <input id='workURL' name='workURL' value='' /><br/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class='row'>
+        <div class='col'>
+          <hr/>
+        </div>
+      </div>
+
+      <div class='row'>
+        <div class='col'>
+          <div class='card'>
+            <div class='group'>
+              <div class='groupHeading card-header'>Email</div>
+              <div class='card-body'>
+                Email<br/>
+                <input id='emailHome' name='emailHome' value='' /><br/>
+                Work Email<br/>
+                <input id='emailWork' name='emailWork' value='' /><br/>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class='col'>
+          <div class='card'>
+            <div class='group'>
+              <div class='groupHeading card-header'>Phones</div>
+              <div class='card-body'>
+                Home Phone<br/>
+                <input id='phoneHome' name='phoneHome' value='' /><br/>
+                Work Phone<br/>
+                <input id='phoneWork' name='phoneWork' value='' /><br/>
+                Cell Phone<br/>
+                <input id='phoneCell' name='phoneCell' value='' /><br/>
+                Pager Phone<br/>
+                <input id='phonePager' name='phonePager' value='' /><br/>
+                Home Fax<br/>
+                <input id='phoneHomeFax' name='phoneHomeFax' value='' /><br/>
+                Work Fax<br/>
+                <input id='phoneWorkFax' name='phoneWorkFax' value='' /><br/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class='row'>
+        <div class='col'>
+          <hr/>
+        </div>
+      </div>
+
+      <div class='row'>
+        <div class='col'>
+          <div class='card'>
+            <div class='group'>
+              <div class='groupHeading card-header'>Home Address</div>
+              <div class='card-body'>
+                Label<br />
+                <input id='homeAddressLabel' name='homeAddressLabel' value='' /><br/>
+                Street<br />
+                <input id='homeAddressStreet' name='homeAddressStreet' value='' /><br/>
+                City<br />
+                <input id='homeAddressCity' name='homeAddressCity' value='' /><br/>
+                State / Province<br />
+                <input id='homeAddressStateOrProvince' name='homeAddressStateOrProvince' value='' /><br/>
+                Postal Code<br />
+                <input id='homeAddressPostalCode' name='homeAddressPostalCode' value='' /><br/>
+                Country<br />
+                <input id='homeAddressCountry' name='homeAddressCountry' value='' /><br/>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class='col'>
+          <div class='card'>
+            <div class='group'>
+              <div class='groupHeading card-header'>Work Address</div>
+              <div class='card-body'>
+                Label<br />
+                <input id='workAddressLabel' name='workAddressLabel' value='' /><br/>
+                Street<br />
+                <input id='workAddressStreet' name='workAddressStreet' value='' /><br/>
+                City<br />
+                <input id='workAddressCity' name='workAddressCity' value='' /><br/>
+                State / Province<br />
+                <input id='workAddressStateOrProvince' name='workAddressStateOrProvince' value='' /><br/>
+                Postal Code<br />
+                <input id='workAddressPostalCode' name='workAddressPostalCode' value='' /><br/>
+                Country<br />
+                <input id='workAddressCountry' name='workAddressCountry' value='' /><br/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class='row'>
+        <div class='col'>
+          <hr/>
+        </div>
+      </div>
+
+      <div class='row'>
+        <div class='col'>
+          <div class='card'>
+            <div class='group'>
+              <div class='groupHeading card-header'>Personal</div>
+              <div class='card-body'>
+                Birthday<br />
+                <input id='personalBirthday' name='personalBirthday' type='date' value='' /><br/>
+                Anniversary<br />
+                <input id='personalAnniversary' name='personalAnniversary' type='date' value='' /><br/>
+                URL<br />
+                <input id='personalURL' name='personalURL' value='' /><br/>
+                Gender<br />
+                <!--<input id='personalGender' name='personalGender' value='' /><br/>-->
+                <input type='radio' id='personalGender' name='personalGender' value='M' /> Male<br/>
+                <input type='radio' id='personalGender' name='personalGender' value='F' /> Female<br/>
+                <input type='radio' id='personalGender' name='personalGender' value='O' /> Other<br/>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class='col'>
+          <div class='card'>
+            <div class='group'>
+              <div class='groupHeading card-header'>Images</div>
+              <div class='card-body'>
+                Photo<br />
+                <input id='imagePhoto' name='imagePhoto' type='file' accept='image/*' value='' /><br/>
+                Logo<br />
+                <input id='imageLogo' name='imageLogo' type='file' accept='image/*' value='' /><br/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class='row'>
+        <div class='col'>
+          <hr/>
+        </div>
+      </div>
+
+      <div class='row'>
+        <div class='col'>
+          <div class='card'>
+            <div class='group'>
+              <div class='groupHeading card-header'>Social</div>
+              <div class='card-body'>
+                LinkedIn<br/>
+                <input id='socialLinkedIn' name='socialLinkedIn' value='' /><br/>
+                Twitter<br/>
+                <input id='socialTwitter' name='socialTwitter' value='' /><br/>
+                Facebook<br/>
+                <input id='socialFacebook' name='socialFacebook' value='' /><br/>
+                Instagram<br/>
+                <input id='socialInstagram' name='socialInstagram' value='' /><br/>
+                Youtube<br/>
+                <input id='socialYoutube' name='socialYoutube' value='' /><br/>
+                Tagged<br/>
+                <input id='socialTagged' name='socialTagged' value='' /><br/>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class='col'>
+          <div class='card'>
+            <div class='group'>
+              <div class='groupHeading card-header'>Other</div>
+              <div class='card-body'>
+                Notes<br/>
+                <input id='notesNote' name='notesNote' value='' /><br/>
+                UID<br/>
+                <input id='notesUid' name='notesUid' value='' /><br/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class='row'>
+        <div class='col'>
+          <hr/>
+        </div>
+      </div>
+
+      <div class='output'>
+        <h3 class='text-center'>vCard Output</h3>
+        <div class='row'>
+          <div class='col text-center'>
+            <div>
+              <textarea id='vCardOutputTextarea' class='' rows='10'></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class='row'>
+          <div class='col'>
+            <br />
+          </div>
+        </div>
+
+        <div class='row'>
+          <div class='col text-center'>
+            <div><button type='button' onclick="generateVCard('vCardOutputTextarea');">Generate</button></div>
+          </div>
+          <div class='col text-center'>
+            <div><button type='button' onclick="saveTextareaToFile('vCardOutputTextarea', getFileName());">Save</button></div>
+          </div>
+        </div>
+        <div class='row'>
+        </div>
+      </div>
+
+      <div class='row'>
+        <div class='col'>
+          <br />
+        </div>
+      </div>
+
+    </div>
+  </body>
+</html> 
