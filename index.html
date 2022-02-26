@@ -9,7 +9,7 @@
       /*.groupHeading card-header{  }*/
       /*.card-header{ padding: 10px 10px 10px 10px; }*/
     </style>
-    <script>
+    <script type="text/javascript" defer>
       function saveTextareaToFile(textAreaID, fileName='vcard.vcf') {
         let text = document.getElementById(textAreaID).value;
         text = text.replace(/\n/g, "\r\n"); // To retain the Line breaks.
@@ -23,7 +23,7 @@
         anchor.click();
         document.body.removeChild(anchor);
       }
-      function generateVCard(textAreaVCardOutputID) {
+      async function generateVCard(textAreaVCardOutputID) {
         let vCardOutput = 'BEGIN:VCARD\r\n';
         vCardOutput += 'VERSION:3.0\r\n';
 
@@ -149,16 +149,40 @@
         let personalURL = document.getElementById('personalURL').value;
         vCardOutput += `URL;CHARSET=UTF-8:${personalURL}\r\n`;
 
-        let personalGender = document.getElementById('personalGender').value;
-        vCardOutput += `GENDER:${personalGender}\r\n`;
+        if(document.querySelector("input[name='personalGender']:checked")) {
+          let personalGender = document.querySelector("input[name='personalGender']:checked").value;
+          vCardOutput += `GENDER:${personalGender}\r\n`;
+        }
         // END PERSONAL
 
         // IMAGES
-        let imagePhoto = document.getElementById('imagePhoto').value;
-        vCardOutput += `PHOTO;ENCODING=b;TYPE=JPEG:${imagePhoto}\r\n`;
+        if(document.getElementById('imagePhoto')) {
+          let file = document.getElementById('imagePhoto').files[0];
+          try {
+            let data = await getBase64(file);
+            if(data) {
+              data = data.replace('data:image/jpeg;base64,', '');
+            }
+            vCardOutput += `PHOTO;ENCODING=b;TYPE=JPEG:${data}\r\n`;
+            //console.log(`data: ${data}`);
+          } catch(error) {
+            //console.log(`error: ${error}`);
+          };
+        }
 
-        let imageLogo = document.getElementById('imageLogo').value;
-        vCardOutput += `LOGO;ENCODING=b;TYPE=JPEG:${imageLogo}\r\n`;
+        if(document.getElementById('imageLogo')) {
+          let file = document.getElementById('imageLogo').files[0];
+          try{
+            let data = await getBase64(file);
+            if(data) {
+              data = data.replace('data:image/jpeg;base64,', '');
+            }
+            vCardOutput += `LOGO;ENCODING=b;TYPE=JPEG:${data}\r\n`;
+            //console.log(`data: ${data}`);
+          } catch(error) {
+            console.log(`error: ${error}`);
+          };
+        }
         // END IMAGES
 
         // SOCIAL
@@ -196,13 +220,18 @@
         vCardOutput += `UID;CHARSET=UTF-8:${notesUid}\r\n`;
         // END
 
-        
-        vCardOutput += 'REV:2022-02-25T04:31:46.917Z\r\n';
+        // need to update this to generate current date time
+        //vCardOutput += 'REV:2022-02-25T04:31:46.917Z\r\n';
+        let today = new Date().toISOString();
+        vCardOutput += `REV:${today}\r\n`;
         vCardOutput += 'END:VCARD';
-        document.getElementById(textAreaVCardOutputID).value = vCardOutput;
+
+        if(document.getElementById(textAreaVCardOutputID)) {
+          document.getElementById(textAreaVCardOutputID).value = vCardOutput;
+        }
       }
       function getFileName() {
-        let fileName = 'vcard.vcf';
+        let fileName = 'vcard';
 
         // firstName
         let firstName = document.getElementById('firstName').value;
@@ -215,7 +244,7 @@
 
         // full name
         //fileName = `${firstName}_${middleName}_${lastName}.vcf`;
-        if(middleName) {
+        if(firstName) {
           fileName = `${firstName}`;
         }
 
@@ -229,10 +258,34 @@
         
         fileName = fileName.toLowerCase();
         fileName = fileName.replace(/\s/g, '');
+        fileName = fileName.replace(/[/\\?%*:|"<>]/g, '-');
 
         return fileName;
       }
-      function init() {
+      function getBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          if(file) {
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+          } else {
+            resolve(null);
+          }
+        });
+      }
+      function updateVCardOnChange(event) {
+        generateVCard('vCardOutputTextarea');
+        //console.log(`updateVCardOnChange - event.currentTarget.customParameter: ${event.currentTarget.customParameter}`);
+      }
+      async function init() {
+        const inputElements = document.querySelectorAll('input');
+        for( let i = 0; i < inputElements.length; i += 1) {
+          inputElements[i].addEventListener('change', updateVCardOnChange);
+          inputElements[i].addEventListener('keydown', updateVCardOnChange);
+          inputElements[i].customParameter = i;
+        }
+        generateVCard('vCardOutputTextarea');
       }
     </script>
   </head>
@@ -254,17 +307,17 @@
               <div class='groupHeading card-header'>Name</div>
               <div class='card-body'>
                 Prefix<br/>
-                <input id='prefixName' name='prefixName' value='' /><br/>
+                <input class='form-control' id='prefixName' name='prefixName' value='' /><br/>
                 First Name<br/>
-                <input id='firstName' name='firstName' value='' /><br/>
+                <input class='form-control' id='firstName' name='firstName' value='' /><br/>
                 Middle Name<br/>
-                <input id='middleName' name='middleName' value='' /><br/>
+                <input class='form-control' id='middleName' name='middleName' value='' /><br/>
                 Last Name<br/>
-                <input id='lastName' name='lastName' value='' /><br/>
+                <input class='form-control' id='lastName' name='lastName' value='' /><br/>
                 Suffix<br/>
-                <input id='suffixName' name='suffixName' value='' /><br/>
+                <input class='form-control' id='suffixName' name='suffixName' value='' /><br/>
                 Nickname<br/>
-                <input id='nickName' name='nickName' value='' /><br/>
+                <input class='form-control' id='nickName' name='nickName' value='' /><br/>
               </div>
             </div>
           </div>
@@ -275,13 +328,13 @@
               <div class='groupHeading card-header'>Work</div>
               <div class='card-body'>
                 Organization<br/>
-                <input id='workOrganization' name='workOrganization' value='' /><br/>
+                <input class='form-control' id='workOrganization' name='workOrganization' value='' /><br/>
                 Title<br/>
-                <input id='workTitle' name='workTitle' value='' /><br/>
+                <input class='form-control' id='workTitle' name='workTitle' value='' /><br/>
                 Role<br/>
-                <input id='workRole' name='workRole' value='' /><br/>
+                <input class='form-control' id='workRole' name='workRole' value='' /><br/>
                 Work URL<br/>
-                <input id='workURL' name='workURL' value='' /><br/>
+                <input class='form-control' id='workURL' name='workURL' type='url' placeholder='https://example.com' pattern='https://.*'value='' /><br/>
               </div>
             </div>
           </div>
@@ -290,7 +343,7 @@
 
       <div class='row'>
         <div class='col'>
-          <hr/>
+          <br />
         </div>
       </div>
 
@@ -301,9 +354,9 @@
               <div class='groupHeading card-header'>Email</div>
               <div class='card-body'>
                 Email<br/>
-                <input id='emailHome' name='emailHome' value='' /><br/>
+                <input class='form-control' id='emailHome' name='emailHome' type='email' value='' /><br/>
                 Work Email<br/>
-                <input id='emailWork' name='emailWork' value='' /><br/>
+                <input class='form-control' id='emailWork' name='emailWork' type='email' value='' /><br/>
               </div>
             </div>
           </div>
@@ -314,17 +367,17 @@
               <div class='groupHeading card-header'>Phones</div>
               <div class='card-body'>
                 Home Phone<br/>
-                <input id='phoneHome' name='phoneHome' value='' /><br/>
+                <input class='form-control' id='phoneHome' name='phoneHome' value='' /><br/>
                 Work Phone<br/>
-                <input id='phoneWork' name='phoneWork' value='' /><br/>
+                <input class='form-control' id='phoneWork' name='phoneWork' value='' /><br/>
                 Cell Phone<br/>
-                <input id='phoneCell' name='phoneCell' value='' /><br/>
+                <input class='form-control' id='phoneCell' name='phoneCell' value='' /><br/>
                 Pager Phone<br/>
-                <input id='phonePager' name='phonePager' value='' /><br/>
+                <input class='form-control' id='phonePager' name='phonePager' value='' /><br/>
                 Home Fax<br/>
-                <input id='phoneHomeFax' name='phoneHomeFax' value='' /><br/>
+                <input class='form-control' id='phoneHomeFax' name='phoneHomeFax' value='' /><br/>
                 Work Fax<br/>
-                <input id='phoneWorkFax' name='phoneWorkFax' value='' /><br/>
+                <input class='form-control' id='phoneWorkFax' name='phoneWorkFax' value='' /><br/>
               </div>
             </div>
           </div>
@@ -333,7 +386,7 @@
       
       <div class='row'>
         <div class='col'>
-          <hr/>
+          <br />
         </div>
       </div>
 
@@ -344,17 +397,17 @@
               <div class='groupHeading card-header'>Home Address</div>
               <div class='card-body'>
                 Label<br />
-                <input id='homeAddressLabel' name='homeAddressLabel' value='' /><br/>
+                <input class='form-control' id='homeAddressLabel' name='homeAddressLabel' value='' /><br/>
                 Street<br />
-                <input id='homeAddressStreet' name='homeAddressStreet' value='' /><br/>
+                <input class='form-control' id='homeAddressStreet' name='homeAddressStreet' value='' /><br/>
                 City<br />
-                <input id='homeAddressCity' name='homeAddressCity' value='' /><br/>
+                <input class='form-control' id='homeAddressCity' name='homeAddressCity' value='' /><br/>
                 State / Province<br />
-                <input id='homeAddressStateOrProvince' name='homeAddressStateOrProvince' value='' /><br/>
+                <input class='form-control' id='homeAddressStateOrProvince' name='homeAddressStateOrProvince' value='' /><br/>
                 Postal Code<br />
-                <input id='homeAddressPostalCode' name='homeAddressPostalCode' value='' /><br/>
+                <input class='form-control' id='homeAddressPostalCode' name='homeAddressPostalCode' value='' /><br/>
                 Country<br />
-                <input id='homeAddressCountry' name='homeAddressCountry' value='' /><br/>
+                <input class='form-control' id='homeAddressCountry' name='homeAddressCountry' value='' /><br/>
               </div>
             </div>
           </div>
@@ -365,17 +418,17 @@
               <div class='groupHeading card-header'>Work Address</div>
               <div class='card-body'>
                 Label<br />
-                <input id='workAddressLabel' name='workAddressLabel' value='' /><br/>
+                <input class='form-control' id='workAddressLabel' name='workAddressLabel' value='' /><br/>
                 Street<br />
-                <input id='workAddressStreet' name='workAddressStreet' value='' /><br/>
+                <input class='form-control' id='workAddressStreet' name='workAddressStreet' value='' /><br/>
                 City<br />
-                <input id='workAddressCity' name='workAddressCity' value='' /><br/>
+                <input class='form-control' id='workAddressCity' name='workAddressCity' value='' /><br/>
                 State / Province<br />
-                <input id='workAddressStateOrProvince' name='workAddressStateOrProvince' value='' /><br/>
+                <input class='form-control' id='workAddressStateOrProvince' name='workAddressStateOrProvince' value='' /><br/>
                 Postal Code<br />
-                <input id='workAddressPostalCode' name='workAddressPostalCode' value='' /><br/>
+                <input class='form-control' id='workAddressPostalCode' name='workAddressPostalCode' value='' /><br/>
                 Country<br />
-                <input id='workAddressCountry' name='workAddressCountry' value='' /><br/>
+                <input class='form-control' id='workAddressCountry' name='workAddressCountry' value='' /><br/>
               </div>
             </div>
           </div>
@@ -384,7 +437,7 @@
 
       <div class='row'>
         <div class='col'>
-          <hr/>
+          <br />
         </div>
       </div>
 
@@ -395,16 +448,15 @@
               <div class='groupHeading card-header'>Personal</div>
               <div class='card-body'>
                 Birthday<br />
-                <input id='personalBirthday' name='personalBirthday' type='date' value='' /><br/>
+                <input class='form-control' id='personalBirthday' name='personalBirthday' type='date' value='' /><br/>
                 Anniversary<br />
-                <input id='personalAnniversary' name='personalAnniversary' type='date' value='' /><br/>
+                <input class='form-control' id='personalAnniversary' name='personalAnniversary' type='date' value='' /><br/>
                 URL<br />
-                <input id='personalURL' name='personalURL' value='' /><br/>
+                <input class='form-control' id='personalURL' name='personalURL' type='url' placeholder='https://example.com' pattern='https://.*'value='' /><br/>
                 Gender<br />
-                <!--<input id='personalGender' name='personalGender' value='' /><br/>-->
-                <input type='radio' id='personalGender' name='personalGender' value='M' /> Male<br/>
-                <input type='radio' id='personalGender' name='personalGender' value='F' /> Female<br/>
-                <input type='radio' id='personalGender' name='personalGender' value='O' /> Other<br/>
+                <input class='' type='radio' id='personalGender' name='personalGender' value='M' /> Male<br/>
+                <input class='' type='radio' id='personalGender' name='personalGender' value='F' /> Female<br/>
+                <input class='' type='radio' id='personalGender' name='personalGender' value='O' checked='checked' /> Other<br/>
               </div>
             </div>
           </div>
@@ -415,9 +467,9 @@
               <div class='groupHeading card-header'>Images</div>
               <div class='card-body'>
                 Photo<br />
-                <input id='imagePhoto' name='imagePhoto' type='file' accept='image/*' value='' /><br/>
+                <input class='form-control' id='imagePhoto' name='imagePhoto' type='file' accept='image/*' value='' /><br/>
                 Logo<br />
-                <input id='imageLogo' name='imageLogo' type='file' accept='image/*' value='' /><br/>
+                <input class='form-control' id='imageLogo' name='imageLogo' type='file' accept='image/*' value='' /><br/>
               </div>
             </div>
           </div>
@@ -426,7 +478,7 @@
 
       <div class='row'>
         <div class='col'>
-          <hr/>
+          <br />
         </div>
       </div>
 
@@ -437,17 +489,17 @@
               <div class='groupHeading card-header'>Social</div>
               <div class='card-body'>
                 LinkedIn<br/>
-                <input id='socialLinkedIn' name='socialLinkedIn' value='' /><br/>
+                <input class='form-control' id='socialLinkedIn' name='socialLinkedIn' type='url' placeholder='https://example.com' pattern='https://.*'value='' /><br/>
                 Twitter<br/>
-                <input id='socialTwitter' name='socialTwitter' value='' /><br/>
+                <input class='form-control' id='socialTwitter' name='socialTwitter' type='url' placeholder='https://example.com' pattern='https://.*'value='' /><br/>
                 Facebook<br/>
-                <input id='socialFacebook' name='socialFacebook' value='' /><br/>
+                <input class='form-control' id='socialFacebook' name='socialFacebook' type='url' placeholder='https://example.com' pattern='https://.*'value='' /><br/>
                 Instagram<br/>
-                <input id='socialInstagram' name='socialInstagram' value='' /><br/>
+                <input class='form-control' id='socialInstagram' name='socialInstagram' type='url' placeholder='https://example.com' pattern='https://.*'value='' /><br/>
                 Youtube<br/>
-                <input id='socialYoutube' name='socialYoutube' value='' /><br/>
+                <input class='form-control' id='socialYoutube' name='socialYoutube' type='url' placeholder='https://example.com' pattern='https://.*'value='' /><br/>
                 Tagged<br/>
-                <input id='socialTagged' name='socialTagged' value='' /><br/>
+                <input class='form-control' id='socialTagged' name='socialTagged' type='url' placeholder='https://example.com' pattern='https://.*'value='' /><br/>
               </div>
             </div>
           </div>
@@ -458,9 +510,9 @@
               <div class='groupHeading card-header'>Other</div>
               <div class='card-body'>
                 Notes<br/>
-                <input id='notesNote' name='notesNote' value='' /><br/>
+                <input class='form-control' id='notesNote' name='notesNote' value='' /><br/>
                 UID<br/>
-                <input id='notesUid' name='notesUid' value='' /><br/>
+                <input class='form-control' id='notesUid' name='notesUid' value='' /><br/>
               </div>
             </div>
           </div>
@@ -469,16 +521,20 @@
 
       <div class='row'>
         <div class='col'>
-          <hr/>
+          <br />
         </div>
       </div>
 
       <div class='output'>
-        <h3 class='text-center'>vCard Output</h3>
         <div class='row'>
           <div class='col text-center'>
-            <div>
-              <textarea id='vCardOutputTextarea' class='' rows='10'></textarea>
+            <div class='card'>
+              <div class='card-header'>
+                <h3 class='text-center'>vCard Output</h3>
+              </div>
+              <div class='card-body'>
+                <textarea class='form-control' id='vCardOutputTextarea' name='vCardOutputTextarea' rows='10'></textarea>
+              </div>
             </div>
           </div>
         </div>
@@ -491,10 +547,10 @@
 
         <div class='row'>
           <div class='col text-center'>
-            <div><button type='button' onclick="generateVCard('vCardOutputTextarea');">Generate</button></div>
+            <div><input type='button' class='btn btn-primary' onclick="generateVCard('vCardOutputTextarea');" value='Generate' /></div>
           </div>
           <div class='col text-center'>
-            <div><button type='button' onclick="saveTextareaToFile('vCardOutputTextarea', getFileName());">Save</button></div>
+            <div><input type='button' class='btn btn-success' onclick="saveTextareaToFile('vCardOutputTextarea', getFileName());" value='Save' /></div>
           </div>
         </div>
         <div class='row'>
